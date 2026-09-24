@@ -170,6 +170,7 @@ class ProjectGenerator
         'vendor/workerman/coroutine/src/WaitGroup.php' => '.typephp/build/coroutine-wait-group.php',
         'vendor/workerman/coroutine/src/Barrier.php' => '.typephp/build/coroutine-barrier.php',
         'vendor/workerman/coroutine/src/Barrier/BarrierInterface.php' => '.typephp/build/coroutine-barrier-interface.php',
+        'vendor/workerman/coroutine/src/Barrier/Swoole.php' => '.typephp/build/coroutine-barrier-swoole.php',
     ];
 
     /**
@@ -3425,6 +3426,15 @@ class ProjectGenerator
             if ($content === false) {
                 throw new \RuntimeException('Unable to read the static-patch source file: ' . $sourceFile);
             }
+            if ($sourceRel === 'vendor/workerman/coroutine/src/Barrier/Swoole.php') {
+                $needle = 'public static function wait(object &$barrier, int $timeout = -1): void';
+                $count = substr_count($content, $needle);
+                if ($count !== 1) {
+                    throw new \RuntimeException(
+                        "Coroutine Swoole Barrier reference compatibility rule expected 1 match, found {$count}.",
+                    );
+                }
+            }
 
             $targetFile = $this->basePath . '/' . $targetRel;
             $directory = dirname($targetFile);
@@ -4777,6 +4787,7 @@ class ProjectGenerator
             'vendor/workerman/coroutine/src/WaitGroup.php',
             'vendor/workerman/coroutine/src/Barrier.php',
             'vendor/workerman/coroutine/src/Barrier/BarrierInterface.php',
+            'vendor/workerman/coroutine/src/Barrier/Swoole.php',
             'vendor/workerman/workerman/src/Protocols/Http/Session.php',
             'vendor/workerman/workerman/src/Protocols/Http/Session/FileSessionHandler.php',
             'vendor/workerman/coroutine/src/Context/Fiber.php',

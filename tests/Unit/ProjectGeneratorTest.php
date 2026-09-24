@@ -1423,6 +1423,13 @@ it('patches uninitialized scalar statics in coroutine sources into AOT sources',
             public static function wait(object &$barrier, int $timeout = -1): void;
         }
         PHP);
+    file_put_contents($coroutineDirectory . DIRECTORY_SEPARATOR . 'Barrier/Swoole.php', <<<'PHP'
+        <?php
+        class SwooleBarrier implements BarrierInterface
+        {
+            public static function wait(object &$barrier, int $timeout = -1): void {}
+        }
+        PHP);
 
     try {
         $generator = new ProjectGenerator($directory);
@@ -1433,6 +1440,7 @@ it('patches uninitialized scalar statics in coroutine sources into AOT sources',
             '.typephp/build/coroutine-wait-group.php',
             '.typephp/build/coroutine-barrier.php',
             '.typephp/build/coroutine-barrier-interface.php',
+            '.typephp/build/coroutine-barrier-swoole.php',
         ]);
 
         // 未初始化标量静态属性补成可空 + 默认 null，??= 守卫主体保持原样
@@ -1444,6 +1452,8 @@ it('patches uninitialized scalar statics in coroutine sources into AOT sources',
             ->toContain('public static function wait(mixed &$barrier, int $timeout = -1): void');
         expect((string) file_get_contents($directory . '/.typephp/build/coroutine-barrier-interface.php'))
             ->toContain('public static function wait(mixed &$barrier, int $timeout = -1): void;');
+        expect((string) file_get_contents($directory . '/.typephp/build/coroutine-barrier-swoole.php'))
+            ->toContain('public static function wait(mixed &$barrier, int $timeout = -1): void');
         expect(str_contains($context, 'protected static string $driver;'))->toBeFalse();
 
         // 函数内局部 static 与已带默认值的属性不受补丁影响
@@ -1459,7 +1469,26 @@ it('patches uninitialized scalar statics in coroutine sources into AOT sources',
             )
             ->toContain("\n  - vendor/workerman/coroutine/src/Context.php\n")
             ->toContain("\n  - vendor/workerman/coroutine/src/WaitGroup.php\n")
-            ->toContain("\n  - vendor/workerman/coroutine/src/Barrier.php\n");
+            ->toContain("\n  - vendor/workerman/coroutine/src/Barrier.php\n")
+            ->toContain("\n  - vendor/workerman/coroutine/src/Barrier/Swoole.php\n");
+    } finally {
+        removeTypephpTestDirectory($directory);
+    }
+});
+
+it('rejects changed Swoole Barrier reference signatures', function (): void {
+    $directory = sys_get_temp_dir() . DIRECTORY_SEPARATOR . 'typephp-test-' . bin2hex(random_bytes(4));
+    mkdir($directory . '/vendor/workerman/coroutine/src/Barrier', 0777, true);
+    file_put_contents(
+        $directory . '/vendor/workerman/coroutine/src/Barrier/Swoole.php',
+        "<?php class SwooleBarrier { public static function wait(\$barrier): void {} }\n",
+    );
+    try {
+        expect(fn () => (new ProjectGenerator($directory))->generateNullableStaticSources())
+            ->toThrow(
+                RuntimeException::class,
+                'Coroutine Swoole Barrier reference compatibility rule expected 1 match, found 0',
+            );
     } finally {
         removeTypephpTestDirectory($directory);
     }
