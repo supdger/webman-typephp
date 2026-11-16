@@ -1,0 +1,38 @@
+webman-typephp 许可声明（NOTICE）
+================================
+
+1. 仓库来源
+-----------
+本仓库是 Tinywan/webman-typephp 的 GitHub fork。
+上游地址：https://github.com/Tinywan/webman-typephp
+feat/saiadmin-aot-profile 分支包含青岛沙盒创意网络科技有限公司的自有修改。
+
+2. docker/ 目录中来自 swoole/typephp 的文件
+-----------------------------------------
+docker/ 目录下以下 8 个文件来自 swoole/typephp 项目，按 GNU General
+Public License v3.0 only（GPL-3.0-only）许可分发，文件头中的
+"This file is part of TypePHP" 声明保持原样：
+
+  - docker/ArrayExpressionTrait.php
+  - docker/AssignOpTrait.php
+  - docker/CompilerBase.php
+  - docker/CompilerDiagnosticTrait.php
+  - docker/FuncCallOptimizer.php
+  - docker/SourcePipelineTrait.php
+  - docker/SwitchTrait.php
+  - docker/Translator.php
+
+GPL-3.0 许可证全文：https://www.gnu.org/licenses/gpl-3.0.txt
+
+上述文件仅供 Docker 构建上下文使用，不进入本仓库的 git 发行包
+（已通过根目录 .gitattributes 的 export-ignore 排除）。
+
+3. PHP License 文件
+-------------------
+docker/gen_stub.php 派生自 php-src 的 build/gen_stub.php，
+按 PHP License 3.01 分发，原文件头（The PHP Group 版权声明）保持原样。
+许可证全文：https://www.php.net/license/3_01.txt
+
+4. 其余部分
+-----------
+本仓库其余部分按 MIT 许可分发，详见 LICENSE 文件。
